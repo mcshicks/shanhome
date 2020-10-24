@@ -125,7 +125,7 @@ if __name__ == "__main__":
     mx, fx = mate.read_all()
     print(float(mx.bat_voltage))
 
-while True:
-    mx, fx = mate.read_all()
-    client.publish(state_topic, float(mx.bat_voltage))
-    time.sleep(delay)
+    while True:
+        mx, fx = mate.read_all()
+        client.publish(state_topic, float(mx.bat_voltage))
+        time.sleep(delay)
