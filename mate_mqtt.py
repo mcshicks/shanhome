@@ -11,7 +11,7 @@
 import serial
 from value import Value
 import time
-# import random
+import random
 import paho.mqtt.client as mqtt
 # import paho.mqtt.publish as publish
 
@@ -123,8 +123,13 @@ if __name__ == "__main__":
 
     mate = MateCom('/dev/ttyUSB0')
     mx, fx = mate.read_all()
+    while True:
+        client.publish(state_topic, random.randrange(0, 50, 1))
+        time.sleep(delay)
+
     print(float(mx.bat_voltage))
 
+    
     while True:
         mx, fx = mate.read_all()
         client.publish(state_topic, float(mx.bat_voltage))
