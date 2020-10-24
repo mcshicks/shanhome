@@ -16,7 +16,7 @@ class MXStatusPacket(object):
     """
     Represents an MX status packet, containing useful information
     such as charge current and PV voltage.
-    """1
+    """
     def __init__(self, packet):
         fields = packet.split(',')
         self.address = fields[0]
