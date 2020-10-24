@@ -11,7 +11,7 @@
 import serial
 from value import Value
 import time
-import random
+# import random
 import paho.mqtt.client as mqtt
 # import paho.mqtt.publish as publish
 
@@ -37,7 +37,7 @@ class MXStatusPacket(object):
         # fields[12] unused
 
         chk_expected = int(fields[13])
-        chk_actual = sum(ord(x)-48 for x in packet[:-4] if ord(x)>=48)
+        chk_actual = sum(ord(x)-48 for x in packet[:-4] if ord(x) >= 48)
         if chk_expected != chk_actual:
             raise Exception("Checksum error in received packet")
 
@@ -59,9 +59,9 @@ class FXStatusPacket(object):
         # fields[12] unused
 
         chk_expected = int(fields[13])
-        chk_actual = sum(ord(x)-48 for x in packet[:-4] if ord(x)>=48)
+        chk_actual = sum(ord(x)-48 for x in packet[:-4] if ord(x) >= 48)
         if chk_expected != chk_actual:
-            raise Exception("Checksum error in received packet")       
+            raise Exception("Checksum error in received packet")
 
 
 class MateCom(object):
@@ -92,6 +92,7 @@ class MateCom(object):
         mx = None
         fxfound = False
         mxfound = False
+        ln = self.ser.readline().strip()
         while (not (fxfound and mxfound)):
             if ln.startswith('C'):
                 mx = MXStatusPacket(ln)
@@ -100,7 +101,6 @@ class MateCom(object):
                 fx = FXStatusPacket(ln)
                 fxfound = True
         return mx, fx
-    
 
     def read_raw(self):
         return self.ser.readline().strip()
@@ -115,18 +115,17 @@ if __name__ == "__main__":
     client = mqtt.Client("ha-client")
     client.connect(broker)
     client.loop_start()
-    
+
 # Send a single message to set the mood
 # publish.single('home-assistant/fabian/mood', 'good', hostname=broker)
 
 # Send messages in a loop
 
     mate = MateCom('/dev/ttyUSB0')
-
+    mx, fx = mate.read_all()
+    print(float(mx.bat_voltage))
 
 while True:
     mx, fx = mate.read_all()
-    client.publish(state_topic, random.randrange(0, 50, 1))
+    client.publish(state_topic, float(mx.bat_voltage))
     time.sleep(delay)
-
-        
