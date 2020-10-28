@@ -106,31 +106,26 @@ class MateCom(object):
         return self.ser.readline().strip()
 
 
-if __name__ == "__main__":
 
-    broker = '127.0.0.1'
-    state_topic = 'home-assistant/battery/voltage'
-    delay = 60
 
-    client = mqtt.Client("ha-client")
-    client.connect(broker)
-    client.loop_start()
+broker = '127.0.0.1'
+state_topic = 'home-assistant/battery/voltage'
+delay = 60
 
-# Send a single message to set the mood
-# publish.single('home-assistant/fabian/mood', 'good', hostname=broker)
+client = mqtt.Client("ha-client")
+client.connect(broker)
+client.loop_start()
 
-# Send messages in a loop
+mate = MateCom('/dev/ttyUSB0')
+mx, fx = mate.read_all()
+while True:
+    client.publish(state_topic, random.randrange(0, 50, 1))
+    time.sleep(delay)
 
-    mate = MateCom('/dev/ttyUSB0')
+print(float(mx.bat_voltage))
+
+
+while True:
     mx, fx = mate.read_all()
-    while True:
-        client.publish(state_topic, random.randrange(0, 50, 1))
-        time.sleep(delay)
-
-    print(float(mx.bat_voltage))
-
-    
-    while True:
-        mx, fx = mate.read_all()
-        client.publish(state_topic, float(mx.bat_voltage))
-        time.sleep(delay)
+    client.publish(state_topic, float(mx.bat_voltage))
+    time.sleep(delay)
