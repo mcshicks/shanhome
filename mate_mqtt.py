@@ -92,8 +92,8 @@ class MateCom(object):
         mx = None
         fxfound = False
         mxfound = False
-        ln = self.ser.readline().strip()
         while (not (fxfound and mxfound)):
+            ln = self.ser.readline().strip()
             if ln.startswith('C'):
                 mx = MXStatusPacket(ln)
                 mxfound = True
@@ -106,8 +106,6 @@ class MateCom(object):
         return self.ser.readline().strip()
 
 
-
-
 broker = '127.0.0.1'
 state_topic = 'home-assistant/battery/voltage'
 delay = 60
@@ -117,13 +115,6 @@ client.connect(broker)
 client.loop_start()
 
 mate = MateCom('/dev/ttyUSB0')
-mx, fx = mate.read_all()
-while True:
-    client.publish(state_topic, random.randrange(0, 50, 1))
-    time.sleep(delay)
-
-print(float(mx.bat_voltage))
-
 
 while True:
     mx, fx = mate.read_all()
