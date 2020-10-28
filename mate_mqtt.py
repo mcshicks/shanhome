@@ -118,5 +118,19 @@ mate = MateCom('/dev/ttyUSB0')
 
 while True:
     mx, fx = mate.read_all()
-    client.publish(state_topic, float(mx.bat_voltage))
+    client.publish('home-assistant/battery/voltage', float(mx.bat_voltage))
+    client.publish("home-assistant/mx/charge/current",
+                   float(mx.charge_current))
+    client.publish("home-assistant/mx/pv/current", float(mx.pv_current))
+    client.publish("home-assistant/mx/pv/voltage", float(mx.pv_voltage))
+    client.publish("home-assistant/fx/invertercurrent/current",
+                   float(fx.inverter_current))
+    client.publish("home-assistant/fx/charger/current",
+                   float(fx.charger_current))
+    client.publish("home-assistant/fx/ac/input/voltage",
+                   float(fx.ac_input_voltage))
+    client.publish("home-assistant/fx/ac/output/voltage",
+                   float(fx.ac_output_voltage))
+    client.publish("home-assistant/fx/batt/voltage", float(fx.batt_voltage))
+    # TODO this delay is wrong, we should change to account for processing time 
     time.sleep(delay)
