@@ -92,6 +92,7 @@ class MateCom(object):
         mx = None
         fxfound = False
         mxfound = False
+        self.ser.flushInput()  # make sure it's fresh data
         while (not (fxfound and mxfound)):
             ln = self.ser.readline().strip()
             if ln.startswith('C'):
@@ -108,13 +109,15 @@ class MateCom(object):
 
 broker = '127.0.0.1'
 state_topic = 'home-assistant/battery/voltage'
-delay = 60
+delay = 60.0
 
 client = mqtt.Client("ha-client")
 client.connect(broker)
 client.loop_start()
 
 mate = MateCom('/dev/ttyUSB0')
+
+starttime = time.time()
 
 while True:
     mx, fx = mate.read_all()
@@ -133,4 +136,4 @@ while True:
                    float(fx.ac_output_voltage))
     client.publish("home-assistant/fx/batt/voltage", float(fx.batt_voltage))
     # TODO this delay is wrong, we should change to account for processing time 
-    time.sleep(delay)
+    time.sleep(delay - ((time.time() - starttime) % delay))
