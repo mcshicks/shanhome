@@ -11,7 +11,6 @@
 import serial
 from value import Value
 import time
-import random
 import paho.mqtt.client as mqtt
 # import paho.mqtt.publish as publish
 
@@ -96,11 +95,17 @@ class MateCom(object):
         while (not (fxfound and mxfound)):
             ln = self.ser.readline().strip()
             if ln.startswith('C'):
-                mx = MXStatusPacket(ln)
-                mxfound = True
+                try:
+                    mx = MXStatusPacket(ln)
+                    mxfound = True
+                except IndexError as e:
+                    print(e)
             if ln.startswith('1'):
-                fx = FXStatusPacket(ln)
-                fxfound = True
+                try:
+                    fx = FXStatusPacket(ln)
+                    fxfound = True
+                except IndexError as e:
+                    print(e)
         return mx, fx
 
     def read_raw(self):
@@ -135,5 +140,4 @@ while True:
     client.publish("home-assistant/fx/ac/output/voltage",
                    float(fx.ac_output_voltage))
     client.publish("home-assistant/fx/batt/voltage", float(fx.batt_voltage))
-    # TODO this delay is wrong, we should change to account for processing time 
     time.sleep(delay - ((time.time() - starttime) % delay))
