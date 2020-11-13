@@ -13,6 +13,11 @@ from value import Value
 import time
 import paho.mqtt.client as mqtt
 # import paho.mqtt.publish as publish
+import schedule
+from datetime import datetime, timezone
+from suntime import Sun
+
+
 
 
 class MXStatusPacket(object):
@@ -124,9 +129,62 @@ mate = MateCom('/dev/ttyUSB0')
 
 starttime = time.time()
 
-while True:
+latitude = 47.8408
+longitude = -120.0168
+
+sun = Sun(latitude, longitude)
+
+# Get today's sunrise and sunset in UTC
+today_sr = sun.get_sunrise_time()
+today_ss = sun.get_sunset_time()
+
+#
+#  Since our sunrise is in reference to UTC the hour can be before or after
+#  and we can get off by a day so we will only use time portion, not the date 
+#
+def sunup():
+    sr = today_sr.time()
+    ss = today_ss.time()
+    now = datetime.now(timezone.utc).time()
+    sunup = False
+    if (ss < sr):
+        if (sr < now) or (now < ss):
+            sunup = True
+    else:
+        if (sr < now < ss):
+            sunup = True
+    return sunup
+
+
+def sundown():
+    sr = today_sr.time()
+    ss = today_ss.time()
+    now = datetime.now(timezone.utc).time()
+    sundown = False
+    if (sr < ss):
+        if (ss < now) or (now < sr):
+            sundown = True
+    else:
+        if (ss < now < sr):
+            sundown = True
+    return sundown
+
+def midnight():
+    pass
+
+
+sunstatus = False
+sunupkhw = 0.0
+sundownkhw = 0.0
+
+
+def job():
+    global client, sunstatus, sunupkhw, sundownkhw
+    # print("checking sunrise/sundown")
+    # print(today_ss.time())
+    # print(today_sr.time())
+    # print(datetime.now(timezone.utc).time())
     mx, fx = mate.read_all()
-    client.publish('home-assistant/battery/voltage', float(mx.bat_voltage))
     client.publish("home-assistant/mx/charge/current",
                    float(mx.charge_current))
     client.publish("home-assistant/mx/pv/current", float(mx.pv_current))
@@ -140,4 +198,40 @@ while True:
     client.publish("home-assistant/fx/ac/output/voltage",
                    float(fx.ac_output_voltage))
     client.publish("home-assistant/fx/batt/voltage", float(fx.batt_voltage))
-    time.sleep(delay - ((time.time() - starttime) % delay))
+    if sunup():
+        if not sunstatus:
+            print(datetime.now(timezone.utc).time())
+            print("The sun is up...")
+            sunupkhw = 0.0
+            sunstatus = True
+        sunupkhw += (float(fx.inverter_current)+1.0)*float(fx.ac_output_voltage)/60.0
+        client.publish("home-assistant/sunup/khw", sunupkhw)
+    if sundown():
+        if sunstatus:
+            print(datetime.now(timezone.utc).time())
+            print("The sun is down...")
+            sundownkhw = 0.0
+            sunstatus = False
+        sundownkhw += (float(fx.inverter_current)+1.0)*float(fx.ac_output_voltage)/60.0
+        client.publish("home-assistant/sundown/khw", sundownkhw)
+
+
+schedule.every(1).minutes.do(job)
+# schedule.every().hour.do(job)
+#schedule.every().day.at("18:51").do(job)
+
+broker = '127.0.0.1'
+state_topic = 'home-assistant/battery/voltage'
+delay = 60.0
+
+client = mqtt.Client("ha-client")
+client.connect(broker)
+client.loop_start()
+
+starttime = time.time()
+
+
+while 1:
+    schedule.run_pending()
+    time.sleep(1)
+    
