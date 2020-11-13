@@ -14,7 +14,8 @@ import time
 import paho.mqtt.client as mqtt
 # import paho.mqtt.publish as publish
 import schedule
-from datetime import datetime, timezone
+from datetime import datetime
+import pytz
 from suntime import Sun
 
 
@@ -145,7 +146,7 @@ today_ss = sun.get_sunset_time()
 def sunup():
     sr = today_sr.time()
     ss = today_ss.time()
-    now = datetime.now(timezone.utc).time()
+    now = datetime.now(pytz.utc).time()
     sunup = False
     if (ss < sr):
         if (sr < now) or (now < ss):
@@ -159,7 +160,7 @@ def sunup():
 def sundown():
     sr = today_sr.time()
     ss = today_ss.time()
-    now = datetime.now(timezone.utc).time()
+    now = datetime.now(pytz.utc).time()
     sundown = False
     if (sr < ss):
         if (ss < now) or (now < sr):
@@ -200,7 +201,7 @@ def job():
     client.publish("home-assistant/fx/batt/voltage", float(fx.batt_voltage))
     if sunup():
         if not sunstatus:
-            print(datetime.now(timezone.utc).time())
+            print(datetime.now(pytz.utc).time())
             print("The sun is up...")
             sunupkhw = 0.0
             sunstatus = True
@@ -208,7 +209,7 @@ def job():
         client.publish("home-assistant/sunup/khw", sunupkhw)
     if sundown():
         if sunstatus:
-            print(datetime.now(timezone.utc).time())
+            print(datetime.now(pytz.utc).time())
             print("The sun is down...")
             sundownkhw = 0.0
             sunstatus = False
