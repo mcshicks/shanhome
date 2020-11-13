@@ -186,6 +186,7 @@ def job():
     # print(today_sr.time())
     # print(datetime.now(timezone.utc).time())
     mx, fx = mate.read_all()
+    client.publish('home-assistant/battery/voltage', float(mx.bat_voltage))
     client.publish("home-assistant/mx/charge/current",
                    float(mx.charge_current))
     client.publish("home-assistant/mx/pv/current", float(mx.pv_current))
