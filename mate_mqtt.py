@@ -205,7 +205,7 @@ def job():
             print("The sun is up...")
             sunupkhw = 0.0
             sunstatus = True
-        sunupkhw += (float(fx.inverter_current)+1.0)*float(fx.ac_output_voltage)/60.0
+        sunupkhw += (float(fx.inverter_current)+1.0)*float(fx.ac_output_voltage)/(60.0*1000)
         client.publish("home-assistant/sunup/khw", sunupkhw)
     if sundown():
         if sunstatus:
@@ -213,7 +213,7 @@ def job():
             print("The sun is down...")
             sundownkhw = 0.0
             sunstatus = False
-        sundownkhw += (float(fx.inverter_current)+1.0)*float(fx.ac_output_voltage)/60.0
+        sundownkhw += (float(fx.inverter_current)+1.0)*float(fx.ac_output_voltage)/(60.0*1000)
         client.publish("home-assistant/sundown/khw", sundownkhw)
 
 
